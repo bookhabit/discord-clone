@@ -1,58 +1,54 @@
 "use client";
 
+import axios from "axios";
+import { Check, Copy, RefreshCw } from "lucide-react";
+import { useState } from "react";
+
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useRouter } from "next/navigation";
-import { useModal } from "@/hooks/use-modal-store";
 import { Label } from "@/components/ui/label";
+import { useModal } from "@/hooks/use-modal-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, RefreshCw } from "lucide-react";
 import { useOrigin } from "@/hooks/use-origin";
-import { useState } from "react";
-import axios from "axios";
 
 export const InviteModal = () => {
-  const {onOpen,isOpen,onClose,type,data} = useModal()
+  const { onOpen, isOpen, onClose, type, data } = useModal();
   const origin = useOrigin();
 
-  const isModalOpen = isOpen && type==="invite"
-  const {server} = data;
+  const isModalOpen = isOpen && type === "invite";
+  const { server } = data;
 
-  const [copied,setCopied] = useState(false)
-  const [isLoading,setIsLoading] = useState(false)
+  const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const onCopy = ()=>{
-    navigator.clipboard.writeText(inviteUrl)
-    setCopied(true)
+  const inviteUrl = `${origin}/invite/${server?.inviteCode}`;
+
+  const onCopy = () => {
+    navigator.clipboard.writeText(inviteUrl);
+    setCopied(true);
 
     setTimeout(() => {
-      setCopied(false)
+      setCopied(false);
     }, 1000);
-  }
+  };
 
-  const onNew = async ()=>{
-    try{
+  const onNew = async () => {
+    try {
       setIsLoading(true);
+      const response = await axios.patch(`/api/servers/${server?.id}/invite-code`);
 
-      const response = await axios.patch(`/api/servers/${server?.id}/invite-code`)
-      console.log('response',response)
-
-      onOpen("invite",{server:response.data})
-    }catch(error){
-      console.log(error)
-    }finally{
-      setIsLoading(false)
+      onOpen("invite", { server: response.data });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   }
-
-  const inviteUrl = `${origin}/invite/${server?.inviteCode}`
-
 
   return (
     <Dialog open={isModalOpen} onOpenChange={onClose}>
@@ -74,11 +70,14 @@ export const InviteModal = () => {
               className="bg-zinc-300/50 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
               value={inviteUrl}
             />
-            <Button onClick={onCopy} size="icon" disabled={isLoading}>
-              {copied ? <Check/> : <Copy className="w-4 h-4"/>}
+            <Button disabled={isLoading} onClick={onCopy} size="icon">
+              {copied 
+                ? <Check className="w-4 h-4" /> 
+                : <Copy className="w-4 h-4" />
+              }
             </Button>
           </div>
-          <Button 
+          <Button
             onClick={onNew}
             disabled={isLoading}
             variant="link"
@@ -86,7 +85,7 @@ export const InviteModal = () => {
             className="text-xs text-zinc-500 mt-4"
           >
             Generate a new link
-            <RefreshCw className="w-4 h-4 ml-2"/>
+            <RefreshCw className="w-4 h-4 ml-2" />
           </Button>
         </div>
       </DialogContent>
